@@ -1,0 +1,39 @@
+const insertAtCursor = (
+  input: HTMLTextAreaElement,
+  textToInsert: string,
+  cursorOffset = 0
+) => {
+  const start = input.selectionStart;
+  const end = input.selectionEnd;
+  const text = input.value;
+  const before = text.substring(0, start);
+  const after = text.substring(end, text.length);
+
+  const newValue = before + textToInsert + after;
+
+  return {
+    value: newValue,
+    newCursorPos: start + textToInsert.length + cursorOffset,
+  };
+};
+const generateMarkdown = () => {
+    if (rows < 1 || cols < 1) return;
+    let md = '\n';
+    // Header
+    md +=
+      '| ' +
+      gridData[0].map((cell) => cell.trim() || 'Header').join(' | ') +
+      ' |\n';
+    // Separator
+    md += '| ' + Array(cols).fill('---').join(' | ') + ' |\n';
+    // Body
+    for (let r = 1; r < rows; r++) {
+      md +=
+        '| ' +
+        gridData[r].map((cell) => cell.trim() || ' ').join(' | ') +
+        ' |\n';
+    }
+    md += '\n';
+    onInsert(md);
+    onClose();
+  };

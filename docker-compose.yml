@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  # 1. Database MongoDB
+  mongodb:
+    image: mongo:latest
+    container_name: skripsi_mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    restart: always
+
+# 2. Python FastAPI (Chatbot & RAG)
+  fastapi:
+    build: 
+      context: ./back-end/chatbot
+    container_name: skripsi_fastapi
+    ports:
+      - "8080:8080"
+    env_file:
+      - ./back-end/chatbot/.env 
+    environment:
+      - MONGO_URI=${MONGO_URI}
+      - MONGO_DB_NAME=skripsi
+    depends_on:
+      - mongodb
+    volumes:
+      - ./back-end/chatbot/vector_store:/app/vector_store
+
+# 3. Node.js Express Backend
+  express:
+    build: 
+      context: ./back-end
+    container_name: skripsi_express
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./back-end/.env  
+    environment:
+      - PORT=5000
+      - FASTAPI_URL=http://fastapi:8080
+    depends_on:
+      - mongodb
+
+  # 4. Next.js Frontend
+  frontend:
+    build: 
+      context: ./front-end
+    container_name: skripsi_frontend
+    ports:
+      - "3000:3000"
+    environment:
+      # Ganti sesuai dengan variabel env yang kamu pakai di frontend untuk nembak API
+      - NEXT_PUBLIC_API_URL=http://localhost:5000/api 
+    depends_on:
+      - express
+
+# Mengamankan data MongoDB agar tidak hilang saat container restart
+volumes:
+  mongo_data:
